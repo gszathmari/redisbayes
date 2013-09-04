@@ -178,14 +178,18 @@ class RedisBayes(object):
             self.redis = Redis()
 
     def flush(self):
+        pipe = self.redis.pipeline()
         for cat in self.redis.smembers(self.prefix + 'categories'):
-            self.redis.delete(self.prefix + cat)
-        self.redis.delete(self.prefix + 'categories')
+            pipe.delete(self.prefix + cat)
+        pipe.delete(self.prefix + 'categories')
+        pipe.execute()
 
     def train(self, category, text):
-        self.redis.sadd(self.prefix + 'categories', category)
+        pipe = self.redis.pipeline()
+        pipe.sadd(self.prefix + 'categories', category)
         for word, count in occurances(self.tokenizer(text)).iteritems():
-            self.redis.hincrby(self.prefix + category, word, count)
+            pipe.hincrby(self.prefix + category, word, count)
+        pipe.execute()
 
     def untrain(self, category, text):
         for word, count in occurances(self.tokenizer(text)).iteritems():
@@ -214,8 +218,11 @@ class RedisBayes(object):
             if tally == 0:
                 continue
             scores[category] = 0.0
+
+            pipe = self.redis.pipeline()
             for word, count in occurs.iteritems():
-                score = self.redis.hget(self.prefix + category, word)
+                pipe.hget(self.prefix + category, word)
+            for score in pipe.execute():
                 assert not score or score > 0, "corrupt bayesian database"
                 score = score or self.correction
                 scores[category] += math.log(float(score) / tally)
