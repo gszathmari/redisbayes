@@ -35,7 +35,7 @@ From cheeseshop::
 
 From git::
 
-    sudo pip install git+git://github.com/jart/redisbayes.git
+    sudo pip install git+git://github.com/satriani9/redisbayes.git
 
 
 Basic Usage

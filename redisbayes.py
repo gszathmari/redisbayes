@@ -79,7 +79,7 @@ import re
 import math
 
 
-__version__ = "0.1.3"
+__version__ = "0.1.3b"
 
 english_ignore = set("""
 a able about above abroad according accordingly across actually adj after
@@ -222,7 +222,13 @@ class RedisBayes(object):
         return scores
 
     def tally(self, category):
-        tally = sum(int(x) for x in self.redis.hvals(self.prefix + category))
+        tally = self.redis.hget(self.prefix + 'tally', category)
+        if tally:
+          tally = int(tally)
+        else:
+          tally = sum(int(x) for x in self.redis.hvals(self.prefix + category))
+          self.redis.hset(self.prefix + 'tally', category, tally) 
+          self.redis.expire(self.prefix + 'tally', 604800)
         assert tally >= 0, "corrupt bayesian database"
         return tally
 
