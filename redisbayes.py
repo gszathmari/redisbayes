@@ -148,6 +148,7 @@ def tidy(text):
     if not isinstance(text, unicode):
         text = text.decode('utf8')
     text = text.lower()
+    text = re.sub(r'(.)\1+', r'\1', text, re.UNICODE)
     return re.sub(r'[\_.,<>:;~+|\[\]?`"!@#$%^&*()\s]', ' ', text, re.UNICODE)
 
 
@@ -239,6 +240,8 @@ class RedisBayes(object):
         assert tally >= 0, "corrupt bayesian database"
         return tally
 
+    def purge_tally(self):
+        self.redis.del(self.prefix + 'tally')
 
 if __name__ == '__main__':
     import doctest
