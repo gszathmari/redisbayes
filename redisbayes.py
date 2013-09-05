@@ -241,7 +241,7 @@ class RedisBayes(object):
         return tally
 
     def purge_tally(self):
-        self.redis.del(self.prefix + 'tally')
+        self.redis.delete(self.prefix + 'tally')
 
 if __name__ == '__main__':
     import doctest
